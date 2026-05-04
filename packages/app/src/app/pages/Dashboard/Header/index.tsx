@@ -163,40 +163,35 @@ const SearchInputGroup = () => {
     new URLSearchParams(window.location.search).get('query') || ''
   );
 
-  const lastTrackedQuery = useRef<string | null>(null);
+  const searchType = location.pathname.includes('/discover')
+    ? 'COMMUNITY'
+    : 'WORKSPACE';
 
   const search = (queryString: string) => {
-    // Track search start when executing a new search query
-    if (lastTrackedQuery.current !== queryString && queryString.length >= 1) {
-      track('Dashboard - Topbar - Search');
-      lastTrackedQuery.current = queryString;
+    if (searchType === 'COMMUNITY') {
+      history.push(dashboardUrls.discoverSearch(queryString, activeTeam));
+    } else {
+      history.push(dashboardUrls.search(queryString, activeTeam));
     }
-    
-    history.push(dashboardUrls.search(queryString, activeTeam));
   };
-  const [debouncedSearch] = useDebouncedCallback(search, 200);
-
-  const onFocus = () => {
-    track('Dashboard - Topbar - Search Focus');
-  };
+  const [debouncedSearch] = useDebouncedCallback(search, 100);
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = event.target.value;
-    
-    setQuery(newValue);
-    
-    // Reset tracking when query becomes empty
-    if (newValue.length === 0) {
-      lastTrackedQuery.current = null;
+    setQuery(event.target.value);
+    if (event.target.value.length >= 1) {
+      debouncedSearch(event.target.value);
     }
-    
-    if (newValue.length >= 1) {
-      debouncedSearch(newValue);
+    if (!event.target.value) {
+      history.push(dashboardUrls.sandboxes('/', activeTeam));
     }
+  };
 
-    if (!newValue) {
-      history.push(dashboardUrls.recent(activeTeam));
+  const handleEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!location.pathname.includes('search')) {
+      // navigate from other places on enter
+      history.push(dashboardUrls.search(query, activeTeam));
     }
+    if (event.which === ENTER) event.currentTarget.blur();
   };
 
   return (
@@ -235,9 +230,8 @@ const SearchInputGroup = () => {
             as={Input}
             value={query}
             onChange={onChange}
-            onFocus={onFocus}
-            // onKeyPress={handleEnter}
-            placeholder="Search in workspace"
+            onKeyPress={handleEnter}
+            placeholder="Search"
             icon="search"
             css={{
               paddingLeft: '24px',

@@ -10,7 +10,7 @@ import {
   DraftSandboxFragment,
   RepoFragmentDashboardFragment,
   ProjectFragment,
-  SearchTeamSandboxFragment,
+  ChangeTeamMemberAuthorizationMutationVariables,
 } from 'app/graphql/types';
 import {
   sandboxUrl,
@@ -208,7 +208,7 @@ export const createFolder = async (
 export const getDrafts = async ({ state, effects }: Context) => {
   const { dashboard, activeTeam } = state;
   try {
-    let sandboxes: (SandboxFragmentDashboardFragment | DraftSandboxFragment)[] = [];
+    let sandboxes: SandboxFragmentDashboardFragment[];
 
     if (activeTeam) {
       const data = await effects.gql.queries.getTeamDrafts({
@@ -781,7 +781,7 @@ export const getSearchSandboxes = async ({ state, effects }: Context) => {
   try {
     const activeTeam = state.activeTeam;
 
-    let sandboxes: SearchTeamSandboxFragment[] = [];
+    let sandboxes: SandboxFragmentDashboardFragment[];
     if (activeTeam) {
       const data = await effects.gql.queries.searchTeamSandboxes({
         teamId: activeTeam,
@@ -1281,25 +1281,53 @@ export const setPreventSandboxesExport = async (
 
     effects.notificationToast.success('Sandbox permissions updated.');
   } catch (error) {
-    changedSandboxes.forEach(oldSandbox => {
-      // Only rollback if the sandbox has permissions property
-      if (hasPermissions(oldSandbox) && oldSandbox.permissions) {
-        actions.dashboard.internal.changeSandboxesInState({
-          sandboxIds: [oldSandbox.id],
-          sandboxMutation: sandbox => {
-            if (hasPermissions(sandbox) && sandbox.permissions) {
-              return {
-                ...sandbox,
-                permissions: { ...oldSandbox.permissions },
-              };
-            }
-            return sandbox;
-          },
-        });
-      }
-    });
+    changedSandboxes.forEach(oldSandbox =>
+      actions.dashboard.internal.changeSandboxesInState({
+        sandboxIds: [oldSandbox.id],
+        sandboxMutation: sandbox => ({
+          ...sandbox,
+          permissions: { ...oldSandbox.permissions },
+        }),
+      })
+    );
     effects.notificationToast.error(
       'There was a problem updating your sandbox permissions'
+    );
+  }
+};
+
+export const setDefaultTeamMemberAuthorization = async (
+  { state, effects }: Context,
+  {
+    defaultAuthorization,
+  }: {
+    defaultAuthorization: TeamMemberAuthorization;
+  }
+) => {
+  if (!state.activeTeamInfo || !state.activeTeamInfo.settings) return;
+
+  const teamId = state.activeTeam;
+
+  // optimistic update
+  const oldValue = state.activeTeamInfo.settings.defaultAuthorization;
+  state.activeTeamInfo.settings.defaultAuthorization = defaultAuthorization;
+
+  effects.analytics.track('Team - Change default authorization', {
+    defaultAuthorization,
+  });
+
+  try {
+    await effects.gql.mutations.setDefaultTeamMemberAuthorization({
+      teamId,
+      defaultAuthorization,
+    });
+
+    effects.notificationToast.success('Default member permissions updated.');
+  } catch (error) {
+    state.activeTeamInfo.settings.defaultAuthorization = oldValue;
+
+    effects.notificationToast.error(
+      'There was a problem updating default member permissions'
     );
   }
 };

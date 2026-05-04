@@ -11,8 +11,6 @@ import {
   RecentlyDeletedTeamSandboxesFragment,
   SearchTeamSandboxFragment,
   CollaboratorSandboxFragment,
-  RecentlyAccessedSandboxFragment,
-  WorkspaceSandboxFragment,
 } from 'app/graphql/types';
 import isSameWeek from 'date-fns/isSameWeek';
 import { sortBy } from 'lodash-es';
@@ -25,12 +23,11 @@ export type DashboardSandboxStructure = {
   DRAFTS: DraftSandboxFragment[] | null;
   TEMPLATES: Template[] | null;
   DELETED: RecentlyDeletedTeamSandboxesFragment[] | null;
-  RECENT_SANDBOXES: (RecentlyAccessedSandboxFragment | DraftSandboxFragment)[] | null;
+  RECENT_SANDBOXES: (Sandbox | DraftSandboxFragment)[] | null;
   RECENT_BRANCHES: Branch[] | null;
   SEARCH: (Sandbox | DraftSandboxFragment | SearchTeamSandboxFragment)[] | null;
   TEMPLATE_HOME: Template[] | null;
   SHARED: (Sandbox | DraftSandboxFragment | CollaboratorSandboxFragment)[] | null;
-  WORKSPACE_SANDBOXES: WorkspaceSandboxFragment[] | null;
   ALL: {
     [path: string]: (Sandbox | SandboxByPathFragment | DraftSandboxFragment)[];
   } | null;
@@ -55,7 +52,7 @@ export type State = {
   viewMode: 'grid' | 'list';
   orderBy: OrderBy;
   getFilteredSandboxes: (
-    sandboxes: Array<Sandbox | SandboxByPathFragment | RecentlyDeletedTeamSandboxesFragment | Repo | Template['sandbox'] | SearchTeamSandboxFragment | CollaboratorSandboxFragment>
+    sandboxes: Array<Sandbox | Repo | Template['sandbox']>
   ) => Sandbox[];
   deletedSandboxesByTime: {
     week: RecentlyDeletedTeamSandboxesFragment[];
@@ -144,8 +141,8 @@ export const state: State = {
     field: 'updatedAt',
   },
   getFilteredSandboxes: derived(
-    ({ orderBy }: State) => (
-      sandboxes: Array<Sandbox | SandboxByPathFragment | DraftSandboxFragment | RecentlyDeletedTeamSandboxesFragment | Template['sandbox'] | SearchTeamSandboxFragment | CollaboratorSandboxFragment>
+    ({ orderBy, filters }: State) => (
+      sandboxes: Array<Sandbox | Template['sandbox']>
     ) => {
       const orderField = orderBy.field;
       const orderOrder = orderBy.order;

@@ -7,6 +7,14 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> &
   { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> &
   { [SubKey in K]: Maybe<T[SubKey]> };
+export type InputMaybe<T> = Maybe<T>;
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> &
+  { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> &
+  { [SubKey in K]: Maybe<T[SubKey]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -72,13 +80,178 @@ export type RootQueryType = {
    */
   branchByName: Branch;
   curatedAlbums: Array<Album>;
+export type RootQueryType = {
+  __typename?: 'RootQueryType';
+  album: Maybe<Album>;
+  albums: Array<Album>;
+  /**
+   * Get a single branch by its short ID.
+   *
+   * Returns a "not found" error if the branch does not exist or is inaccessible by the current user.
+   * Anonymous users may use this endpoint for branches that exist on read-only projects (see
+   * `mutation importReadOnlyProject`).
+   *
+   * Branches represent real or potential git branches on a particular team's project. Branch short
+   * IDs are short alphanumeric strings that point to a particular repository + team + branch name.
+   * Remember that a user may have access to the same branch on multiple teams' projects.
+   *
+   * To look up a branch by repository + team + branch name, see `query branchByName`.
+   *
+   * Example (for branch with short ID `abc123`):
+   *
+   * ```gql
+   * query branchById(id: "abc123") {
+   *   name
+   * }
+   * ```
+   */
+  branchById: Branch;
+  /**
+   * Get a single branch by its repository, team, and name.
+   *
+   * Returns a "not found" error if the branch does not exist or is inaccessible by the current user.
+   * Anonymous users may use this endpoint for branches that exist on read-only projects (see
+   * `mutation importReadOnlyProject`).
+   *
+   * Branches represent real or potential git branches on a particular team's project. Remember that
+   * a user may have access to the same branch on multiple teams' projects.
+   *
+   * To look up a branch by its short ID, see `query branchById`.
+   *
+   * Example (for `codesandbox/test-repo` branch `test-branch`):
+   *
+   * ```gql
+   * query branchByName(
+   *   provider: GITHUB,
+   *   owner: "codesandbox",
+   *   name: "test-repo",
+   *   branch: "test-branch",
+   *   team: "987b6fcd-2a3b-41fe-b1e6-ac33565824b9"
+   * )
+   * ```
+   */
+  branchByName: Branch;
+  curatedAlbums: Array<Album>;
   /**
    * Check for an active live session
    *
    * Accessible to members of the content's workspace and non-editor guests that have already
    * joined the session. Prospective guests should use the mutation `joinLiveSession` with the
    * session's ID instead.
+   * Check for an active live session
+   *
+   * Accessible to members of the content's workspace and non-editor guests that have already
+   * joined the session. Prospective guests should use the mutation `joinLiveSession` with the
+   * session's ID instead.
    */
+  getLiveSession: Maybe<LiveSession>;
+  /** Get git repo and related V1 sandboxes */
+  git: Maybe<Git>;
+  /**
+   * Get repositories owned by a GitHub organization.
+   *
+   * If either `page` or `perPage` are specified, then a single page of results will be returned.
+   * If neither argument is given, then all results will be returned. Note that this still requires
+   * paginated requests to the GitHub API, but the server will concatenate the results.
+   */
+  githubOrganizationRepos: Maybe<Array<GithubRepo>>;
+  /** Get a repository as it appears on GitHub */
+  githubRepo: Maybe<GithubRepo>;
+  /** The various limits in place for free and paying users and teams */
+  limits: Limits;
+  /** Get current user */
+  me: Maybe<CurrentUser>;
+  /**
+   * Get a single project by its repository and team.
+   *
+   * Projects are identified by repository-team pairs. For public repositories, there may also be a
+   * single project that does not have an associated team. For a list of all projects for a given
+   * repository, see `query projectsByRepository`.
+   *
+   * Example (for `https://github.com/codesandbox/test-repo.git`):
+   *
+   * ```gql
+   * query project(
+   *   git_provider: GITHUB,
+   *   owner: "codesandbox",
+   *   repo: "test-repo",
+   *   team: "57ca3ef5-475b-47bf-9530-a686c527e174"
+   * ) { id }
+   * ```
+   */
+  project: Maybe<Project>;
+  /**
+   * Get all projects for the given repository accessible by the current user. Returns an empty list
+   * if no such projects are available, or no version of this project has been imported yet.
+   *
+   * Projects are identified by repository-team pairs. For public repositories, there may also be a
+   * single project that does not have an associated team. This query returns all of the projects
+   * accessible by the current user (as many as `[# of user teams] + 1`). For information about
+   * a project associated with a specific team, see `query project`.
+   *
+   * Example (for `https://github.com/codesandbox/test-repo.git`):
+   *
+   * ```gql
+   * query projects(
+   *   provider: GITHUB,
+   *   owner: "codesandbox",
+   *   name: "test-repo"
+   * ) { id }
+   * ```
+   */
+  projects: Array<Project>;
+  /**
+   * Get a list of teams that have interacted with a repository recently
+   *
+   * This endpoint is intended to be used when a user has access to a repository, but does not
+   * belong to any teams where the repository has been imported. It returns a brief list of teams
+   * (10) that have interacted with that repository recently, with the intention that the user may
+   * wish to request an invitation to one of those teams.
+   *
+   * **Note**: The teams returned by this endpoint are likely to be relevant for **private**
+   * repositories only, and unlikely to be relevant for public repositories.
+   *
+   * ```gql
+   * query recentTeamsByRepository(
+   *   provider: GITHUB,
+   *   owner: "codesandbox",
+   *   name: "test-repo"
+   * ) { id }
+   * ```
+   */
+  recentTeamsByRepository: Array<TeamPreview>;
+  /**
+   * Get a sandbox by its (short) ID
+   *
+   * Requires the current user have read authorization (or that the sandbox is public). Otherwise
+   * returns an error (`"unauthorized"`).
+   */
+  sandbox: Maybe<Sandbox>;
+  /**
+   * Returns a sandbox's team ID if the current user is eligible to join that workspace
+   *
+   * This query is designed for use in 404 experience where the current user does not have access
+   * to the resource but *might* have access if they accept an open invitation to its workspace.
+   * Returns null if no such open invitation exists, or an error if no user is authenticated.
+   *
+   * For a list of all workspaces the user is eligible to join, see `query eligibleWorkspaces`.
+   * The ID returned by this query can be used in `mutation joinEligibleWorkspace`.
+   */
+  sandboxEligibleWorkspace: Maybe<TeamPreview>;
+  /** A team from an invite token */
+  teamByToken: Maybe<TeamPreview>;
+};
+
+export type RootQueryTypeAlbumArgs = {
+  albumId: Scalars['ID'];
+};
+
+export type RootQueryTypeAlbumsArgs = {
+  username: Scalars['String'];
+};
+
+export type RootQueryTypeBranchByIdArgs = {
+  id: Scalars['String'];
   getLiveSession: Maybe<LiveSession>;
   /** Get git repo and related V1 sandboxes */
   git: Maybe<Git>;
@@ -2006,6 +2179,33 @@ export type RootMutationType = {
    * returned `"Not an admin"`. The return value will always be `true`.
    */
   joinUsageBillingBeta: Scalars['Boolean'];
+  /**
+   * Join a workspace the user is eligible to join based on email domain
+   *
+   * A list of eligible workspaces (and their IDs) is available from the `me > eligibleWorkspaces`
+   * query. This endpoint requires an authenticated user and an eligible workspace ID. Otherwise,
+   * one of the following errors will be returned:
+   *
+   * * `Please log in`
+   * * `Workspace not found`
+   *
+   * The latter error represents both invalid IDs and ineligible workspaces.
+   */
+  joinEligibleWorkspace: Team;
+  /**
+   * Join an existing live session
+   *
+   * Accessible to non-editor guests for content that has an existing live session. For editors,
+   * this mutation is a no-op. Returns an error if no live session exists.
+   */
+  joinLiveSession: LiveSession;
+  /**
+   * Join the usage-based billing beta on-demand
+   *
+   * This mutation requires the caller to be an admin of the team. Otherwise, an error will be
+   * returned `"Not an admin"`. The return value will always be `true`.
+   */
+  joinUsageBillingBeta: Scalars['Boolean'];
   /** Leave a team */
   leaveTeam: Scalars['String'];
   /** Make templates from sandboxes */
@@ -2037,7 +2237,17 @@ export type RootMutationType = {
    */
   previewConvertToUsageBilling: InvoicePreview;
   /** @deprecated Subscription management no longer supported via GraphQL */
+  /**
+   * See proposed invoice for converting from seat-based to usage-based billing
+   *
+   * This mutation requires the caller to be an admin of the team. Otherwise, an error will be
+   * returned `"Not an admin"`. Why a mutation? This operation requires communicating information
+   * with Stripe in a way that is more appropriate for a mutation than a query.
+   */
+  previewConvertToUsageBilling: InvoicePreview;
+  /** @deprecated Subscription management no longer supported via GraphQL */
   previewUpdateSubscriptionBillingInterval: BillingPreview;
+  previewUpdateUsageSubscriptionPlan: InvoicePreview;
   previewUpdateUsageSubscriptionPlan: InvoicePreview;
   reactivateSubscription: ProSubscription;
   redeemSandboxInvitation: Invitation;
@@ -2053,6 +2263,7 @@ export type RootMutationType = {
    * Remove one or more GH users from the list of requested reviewers for this pull request.
    * Returns the list of users that are still requested to review.
    */
+  removeRequestedGithubPullRequestReviewers: Array<GithubRequestedReviewer>;
   removeRequestedGithubPullRequestReviewers: Array<GithubRequestedReviewer>;
   /** Remove sandboxes from album (idempotent) */
   removeSandboxesFromAlbum: Maybe<Album>;
@@ -2073,6 +2284,7 @@ export type RootMutationType = {
    * Request one or more GH users to review a pull request
    * Returns complete list of users  requested to review.
    */
+  requestGithubPullRequestReviewers: Array<GithubRequestedReviewer>;
   requestGithubPullRequestReviewers: Array<GithubRequestedReviewer>;
   /**
    * Request access to a team by ID
@@ -2117,8 +2329,35 @@ export type RootMutationType = {
    * access. It has no effect on editors (those who naturally have access to the content).
    */
   setLiveSessionGuestPermission: LiveSession;
+  /**
+   * Set the default level of access for guests in a live session
+   *
+   * Accessible to editors of the underlying content.
+   *
+   * With a default permission of `READ`, guests join with the ability to read the code and watch
+   * changes taking place without making changes of their own, like a classroom mode. With `WRITE`,
+   * all new guests will be able to make changes immediately.
+   *
+   * Individual guest permissions can be overridden using the `setLiveSessionGuestPermission`
+   * mutation. Changing the default permission does not reset any individual guest permissions
+   * set using the `setLiveSessionGuestPermission` mutation. It also does not affect editors (those
+   * who naturally have access to the content).
+   */
+  setLiveSessionDefaultPermission: LiveSession;
+  /**
+   * Set the level of access for a specific guest in a live session
+   *
+   * Accessible to editors of the underlying content.
+   *
+   * If an individual guest should have a level of access different than the default permission
+   * set using the `setLiveSessionDefaultPermission` mutation, this mutation allows targeted
+   * access. It has no effect on editors (those who naturally have access to the content).
+   */
+  setLiveSessionGuestPermission: LiveSession;
   setPreventSandboxesExport: Array<Sandbox>;
   setPreventSandboxesLeavingWorkspace: Array<Sandbox>;
+  /** Change the primary workspace for the current user */
+  setPrimaryWorkspace: Scalars['String'];
   /** Change the primary workspace for the current user */
   setPrimaryWorkspace: Scalars['String'];
   setSandboxesFrozen: Array<Sandbox>;
@@ -2131,12 +2370,32 @@ export type RootMutationType = {
   setTeamLimits: Scalars['String'];
   /** Set user-provided metadata about the workspace */
   setTeamMetadata: Team;
+  /** Set user-editable limits for the workspace */
+  setTeamLimits: Scalars['String'];
+  /** Set user-provided metadata about the workspace */
+  setTeamMetadata: Team;
   /** Set minimum privacy level for workspace */
   setTeamMinimumPrivacy: WorkspaceSandboxSettings;
   /** Set the name of the team */
   setTeamName: Team;
   setWorkspaceSandboxSettings: WorkspaceSandboxSettings;
   softCancelSubscription: ProSubscription;
+  /**
+   * Begin a new live session for a running VM
+   *
+   * Accessible to editors of the underlying content as long as live sessions are allowed by the
+   * content and its workspace.
+   *
+   * The live session will be automatically stopped a few minutes after the VM session ends, or
+   * immediately after calling the `stopLiveSession` mutation.
+   */
+  startLiveSession: LiveSession;
+  /**
+   * Immediately close a live session
+   *
+   * Accessible to editors of the underlying content.
+   */
+  stopLiveSession: LiveSession;
   /**
    * Begin a new live session for a running VM
    *
@@ -2188,17 +2447,39 @@ export type RootMutationType = {
    */
   updateProjectVmTier: Resources;
   /**
+   * Update the VM tier of a project. All branches will start using this new VM tier as soon as the user connects
+   * to the branch (also for running branches). To optimistically update a branch without reload/reconnect,
+   * you can pass a branch ID as well that we'll update immediately.
+   */
+  updateProjectVmTier: Resources;
+  /**
    * Update the settings for a sandbox. All settings are nullable.
    * Not passing a specific argument will leave it unchanged, explicitly passing `null` will revert it to the default.
    */
   updateSandboxSettings: SandboxSettings;
   /**
+   *
    * update subscription details (not billing details)
+   * @deprecated Subscription management no longer supported via GraphQL
+  
    * @deprecated Subscription management no longer supported via GraphQL
    */
   updateSubscription: ProSubscription;
   /** @deprecated Subscription management no longer supported via GraphQL */
+  /** @deprecated Subscription management no longer supported via GraphQL */
   updateSubscriptionBillingInterval: ProSubscription;
+  /**
+   * Update addons for usage-based billing subscription.
+   *
+   * This mutation requires the caller to be an admin of the team. Otherwise, an error will be
+   * returned `"Not an admin"`. This return value will always be `true`. Clients should observe
+   * the `teamEvents` subscription for updates to the workspace subscription.
+   *
+   * After the upcoming pricing change anything other than an empty list to cancel all add-ons
+   * will return an error.
+   */
+  updateUsageSubscription: Scalars['Boolean'];
+  updateUsageSubscriptionPlan: Scalars['Boolean'];
   /**
    * Update addons for usage-based billing subscription.
    *
@@ -2231,15 +2512,17 @@ export type RootMutationTypeAddSandboxesToAlbumArgs = {
 export type RootMutationTypeAddToCollectionArgs = {
   collectionPath: Scalars['String'];
   privacy: InputMaybe<Scalars['Int']>;
-  sandboxIds: InputMaybe<Array<InputMaybe<Scalars['ID']>>>;
-  teamId: InputMaybe<Scalars['UUID4']>;
+  privacy: InputMaybe<Scalars['Int']>;
+  sandboxIds: InputInputMaybe<Array<InputInputMaybe<Scalars['ID']>>>;
+  teamId: InputInputMaybe<Scalars['UUID4']>;
 };
 
 export type RootMutationTypeAddToCollectionOrTeamArgs = {
-  collectionPath: InputMaybe<Scalars['String']>;
+  collectionPath: InputInputMaybe<Scalars['String']>;
   privacy: InputMaybe<Scalars['Int']>;
-  sandboxIds: InputMaybe<Array<InputMaybe<Scalars['ID']>>>;
-  teamId: InputMaybe<Scalars['UUID4']>;
+  privacy: InputMaybe<Scalars['Int']>;
+  sandboxIds: InputInputMaybe<Array<InputInputMaybe<Scalars['ID']>>>;
+  teamId: InputInputMaybe<Scalars['UUID4']>;
 };
 
 export type RootMutationTypeArchiveNotificationArgs = {
@@ -2247,7 +2530,7 @@ export type RootMutationTypeArchiveNotificationArgs = {
 };
 
 export type RootMutationTypeBookmarkTemplateArgs = {
-  teamId: InputMaybe<Scalars['UUID4']>;
+  teamId: InputInputMaybe<Scalars['UUID4']>;
   templateId: Scalars['UUID4'];
 };
 
@@ -2264,7 +2547,14 @@ export type RootMutationTypeChangeSandboxInvitationAuthorizationArgs = {
 };
 
 export type RootMutationTypeChangeTeamMemberAuthorizationsArgs = {
-  memberAuthorizations: InputMaybe<Array<MemberAuthorization>>;
+  memberAuthorizations: InputInputMaybe<Array<MemberAuthorization>>;
+  teamId: Scalars['UUID4'];
+};
+
+export type RootMutationTypeConvertToUsageBillingArgs = {
+  addons: Array<Scalars['String']>;
+  billingInterval: InputMaybe<SubscriptionInterval>;
+  plan: Scalars['String'];
   teamId: Scalars['UUID4'];
 };
 
@@ -2276,13 +2566,13 @@ export type RootMutationTypeConvertToUsageBillingArgs = {
 };
 
 export type RootMutationTypeCreateAlbumArgs = {
-  description: InputMaybe<Scalars['String']>;
+  description: InputInputMaybe<Scalars['String']>;
   title: Scalars['String'];
 };
 
 export type RootMutationTypeCreateBranchArgs = {
-  branch: InputMaybe<Scalars['String']>;
-  from: InputMaybe<Scalars['String']>;
+  branch: InputInputMaybe<Scalars['String']>;
+  from: InputInputMaybe<Scalars['String']>;
   name: Scalars['String'];
   owner: Scalars['String'];
   provider: GitProvider;
@@ -2291,28 +2581,29 @@ export type RootMutationTypeCreateBranchArgs = {
 
 export type RootMutationTypeCreateCodeCommentArgs = {
   anchorReference: CodeReference;
-  codeReferences: InputMaybe<Array<CodeReference>>;
+  codeReferences: InputInputMaybe<Array<CodeReference>>;
   content: Scalars['String'];
-  id: InputMaybe<Scalars['ID']>;
-  imageReferences: InputMaybe<Array<ImageReference>>;
-  parentCommentId: InputMaybe<Scalars['ID']>;
+  id: InputInputMaybe<Scalars['ID']>;
+  imageReferences: InputInputMaybe<Array<ImageReference>>;
+  parentCommentId: InputInputMaybe<Scalars['ID']>;
   sandboxId: Scalars['ID'];
-  userReferences: InputMaybe<Array<UserReference>>;
+  userReferences: InputInputMaybe<Array<UserReference>>;
 };
 
 export type RootMutationTypeCreateCollectionArgs = {
   path: Scalars['String'];
-  teamId: InputMaybe<Scalars['UUID4']>;
+  teamId: InputInputMaybe<Scalars['UUID4']>;
 };
 
 export type RootMutationTypeCreateCommentArgs = {
   codeReferences: InputMaybe<Array<CodeReference>>;
+  codeReferences: InputMaybe<Array<CodeReference>>;
   content: Scalars['String'];
-  id: InputMaybe<Scalars['ID']>;
-  imageReferences: InputMaybe<Array<ImageReference>>;
-  parentCommentId: InputMaybe<Scalars['ID']>;
+  id: InputInputMaybe<Scalars['ID']>;
+  imageReferences: InputInputMaybe<Array<ImageReference>>;
+  parentCommentId: InputInputMaybe<Scalars['ID']>;
   sandboxId: Scalars['ID'];
-  userReferences: InputMaybe<Array<UserReference>>;
+  userReferences: InputInputMaybe<Array<UserReference>>;
 };
 
 export type RootMutationTypeCreateContributionBranchArgs = {

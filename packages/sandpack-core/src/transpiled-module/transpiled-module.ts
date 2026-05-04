@@ -317,6 +317,7 @@ export class TranspiledModule {
     );
   }
 
+  // 添加对被 externals 依赖的特殊处理
   async addDependency(
     manager: Manager,
     depPath: string,
@@ -326,6 +327,14 @@ export class TranspiledModule {
     } = {},
     isTranspilationDep: boolean = false
   ) {
+    // 被 externals 的依赖直接跳过编译，
+    // 即在编译某个模块过程中添加该模块的依赖时，将被 externals 的依赖排除掉，
+    // 阻断进一步对该依赖的编译
+    const { externals } = manager.configurations.sandbox?.parsed;
+    if (externals && externals[depPath]) {
+      return;
+    }
+
     if (depPath.startsWith('codesandbox-api')) {
       return;
     }
@@ -671,6 +680,7 @@ export class TranspiledModule {
       if (!hasHMR) {
         manager.markHardReload();
       } else {
+        // 将 isDirty 设置为 true，表明该模块被修改
         this.resetCompilation();
       }
     }
@@ -785,6 +795,7 @@ export class TranspiledModule {
     return false;
   };
 
+  // 执行该模块代码
   evaluate(
     manager: Manager,
     {
@@ -969,6 +980,7 @@ export class TranspiledModule {
     const transpiledModule = this;
 
     try {
+      // 针对 externals 依赖的特殊处理
       // eslint-disable-next-line no-inner-declarations
       function require(path: string): any {
         if (path === '') {
@@ -977,6 +989,12 @@ export class TranspiledModule {
 
         const usedPath = manager.getPresetAliasedPath(path);
         const bfsModule = BrowserFS.BFSRequire(usedPath);
+
+        // 如果是被 externals 的依赖，直接从 window 对象获取返回即可
+        const { externals } = manager.configurations.sandbox?.parsed;
+        if (externals && externals[path] && window[externals[path]]) {
+          return window[externals[path]];
+        }
 
         if (path === 'os') {
           const os = require('os-browserify');

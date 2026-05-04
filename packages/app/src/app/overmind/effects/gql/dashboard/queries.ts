@@ -298,6 +298,9 @@ export const getTeams: Query<AllTeamsQuery, AllTeamsQueryVariables> = gql`
       id
       
       primaryWorkspaceId
+      id
+      
+      primaryWorkspaceId
       workspaces {
         ...teamFragmentDashboard
       }

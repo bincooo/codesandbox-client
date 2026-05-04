@@ -21,6 +21,7 @@ const publicPath = '/';
 //     .trim() === 'master';
 
 const normalize = normalizeName({ name: true, automaticNameDelimiter: '~' });
+const successResponses = /^0|([123]\d\d)$/;
 
 module.exports = merge(commonConfig, {
   devtool: 'source-map',
@@ -144,6 +145,7 @@ module.exports = merge(commonConfig, {
               maxEntries: 300,
               name: 'unpkg-cache',
             },
+            successResponses,
           },
         },
         {
@@ -154,6 +156,7 @@ module.exports = merge(commonConfig, {
               maxEntries: 20,
               name: 'cloudflare-cache',
             },
+            successResponses,
           },
         },
         {
@@ -164,6 +167,7 @@ module.exports = merge(commonConfig, {
               maximumFileSizeToCacheInBytes: 1024 * 1024 * 100, // 100mb
               name: 'vscode',
             },
+            successResponses,
           },
         },
         {
@@ -174,6 +178,7 @@ module.exports = merge(commonConfig, {
               maximumFileSizeToCacheInBytes: 1024 * 1024 * 100, // 100mb
               name: 'vscode-extensions',
             },
+            successResponses,
           },
         },
       ],
@@ -236,6 +241,7 @@ module.exports = merge(commonConfig, {
               maxAgeSeconds: 60 * 60 * 24,
               name: 'dependency-version-cache',
             },
+            successResponses,
           },
         },
         {
@@ -249,6 +255,7 @@ module.exports = merge(commonConfig, {
               maxAgeSeconds: 60 * 60 * 24,
               name: 'static-root-cache',
             },
+            successResponses,
           },
         },
         {
@@ -260,6 +267,7 @@ module.exports = merge(commonConfig, {
               maxAgeSeconds: 60 * 60 * 24 * 7,
               name: 'dependency-url-generator-cache',
             },
+            successResponses,
           },
         },
         {
@@ -271,6 +279,20 @@ module.exports = merge(commonConfig, {
               maxAgeSeconds: 60 * 60 * 24 * 7,
               name: 'dependency-files-cache',
             },
+            successResponses,
+          },
+        },
+        {
+          // 自建依赖打包器服务缓存
+          urlPattern: /hf\.space\/v2\/packages\//,
+          handler: 'cacheFirst',
+          options: {
+            cache: {
+              // a week
+              maxAgeSeconds: 60 * 60 * 24 * 7,
+              name: 'dependency-files-cache',
+            },
+            successResponses,
           },
         },
         // We resolve `package.json` to resolve versions (e.g. next -> 15.0.5). We need to have a much shorter cache on this
@@ -283,6 +305,7 @@ module.exports = merge(commonConfig, {
               name: 'unpkg-dep-pkg-cache',
               maxAgeSeconds: 60 * 5, // 5 minutes
             },
+            successResponses,
           },
         },
         {
@@ -294,6 +317,7 @@ module.exports = merge(commonConfig, {
               name: 'unpkg-dep-cache',
               maxAgeSeconds: 60 * 60 * 24 * 7,
             },
+            successResponses,
           },
         },
         {
@@ -305,6 +329,7 @@ module.exports = merge(commonConfig, {
               name: 'rawgit-cache',
               maxAgeSeconds: 60 * 60 * 24 * 7,
             },
+            successResponses,
           },
         },
         {
@@ -316,6 +341,7 @@ module.exports = merge(commonConfig, {
               name: 'jsdelivr-dep-cache',
               maxAgeSeconds: 60 * 60 * 24 * 7,
             },
+            successResponses,
           },
         },
         {
@@ -327,6 +353,7 @@ module.exports = merge(commonConfig, {
               name: 'cloudflare-cache',
               maxAgeSeconds: 60 * 60 * 24 * 7,
             },
+            successResponses,
           },
         },
       ],

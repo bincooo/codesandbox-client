@@ -121,8 +121,6 @@ getGlobal().measurements = {
   getMeasurements,
 };
 
-const MEASUREMENT_API = `https://col.csbops.io/data/sandpack`;
-
 export function persistMeasurements(data: {
   sandboxId: string;
   cacheUsed: boolean;
@@ -161,12 +159,19 @@ export function persistMeasurements(data: {
     return Promise.resolve();
   }
 
-  return fetch(MEASUREMENT_API, {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-  });
+  // Ignore external call for on-prem deploys
+  // @ts-ignore
+  if (window._env_?.IS_ONPREM === 'true') {
+    return Promise.resolve();
+  }
+
+  return Promise.resolve();
+  // return fetch(MEASUREMENT_API, {
+  //   method: 'POST',
+  //   body: JSON.stringify(body),
+  //   headers: {
+  //     Accept: 'application/json',
+  //     'Content-Type': 'application/json',
+  //   },
+  // });
 }
