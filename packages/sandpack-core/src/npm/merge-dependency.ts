@@ -138,7 +138,8 @@ function replaceDependencyInfo(
   delete res.dependencyDependencies[depDepName];
 
   // eslint-disable-next-line
-  for (const n of Object.keys(res.dependencyDependencies)) {
+  // FIX: 字段有可能是空的
+  for (const n of Object.keys(res.dependencyDependencies ?? {})) {
     res.dependencyDependencies[n].parents = res.dependencyDependencies[
       n
     ].parents.map(p => (p === depDepName ? newPath : p));
@@ -194,8 +195,9 @@ export function mergeDependencies(responses: ILambdaResponse[]) {
   };
 
   // eslint-disable-next-line
+  // FIX: 字段有可能是空的
   for (const r of sortedResponses) {
-    for (let i = 0; i < Object.keys(r.dependencyDependencies).length; i++) {
+    for (let i = 0; i < Object.keys(r.dependencyDependencies ?? {}).length; i++) {
       const depDepName = Object.keys(r.dependencyDependencies)[i];
 
       const newDepDep = r.dependencyDependencies[depDepName];

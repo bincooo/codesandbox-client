@@ -17,13 +17,15 @@ const VERSION = 2;
 const DEV_URLS = {
   packager:
     'https://xi5p9f7czk.execute-api.eu-west-1.amazonaws.com/dev/packages',
-  bucket: 'https://dev-packager-packages.codesandbox.io',
+  // bucket: 'https://dev-packager-packages.codesandbox.io',
+  bucket: 'https://1i0k3-packager.hf.space',
 };
 // eslint-disable-next-line
 const PROD_URLS = {
   packager:
     'https://aiwi8rnkp5.execute-api.eu-west-1.amazonaws.com/prod/packages',
-  bucket: 'https://prod-packager-packages.codesandbox.io',
+  // bucket: 'https://prod-packager-packages.codesandbox.io',
+  bucket: 'https://1i0k3-packager.hf.space',
 };
 
 const URLS = PROD_URLS;
@@ -118,7 +120,8 @@ export async function getDependency(
 
   const normalizedVersion = normalizeVersion(version);
   const dependencyUrl = dependenciesToQuery({ [depName]: normalizedVersion });
-  const fullUrl = `${BUCKET_URL}/v${VERSION}/packages/${depName}/${normalizedVersion}.json`;
+  // const fullUrl = `${BUCKET_URL}/v${VERSION}/packages/${depName}/${normalizedVersion}.json`;
+  const fullUrl = `${BUCKET_URL}/v${VERSION}/packages/${depName}@${normalizedVersion}`;
 
   if (externals[depName] && !NECESSARY_DEPENDENCIES.includes(depName)) {
     return {
