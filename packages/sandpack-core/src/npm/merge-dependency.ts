@@ -183,9 +183,17 @@ const intersects = (v1: string, v2: string) => {
 
 export function mergeDependencies(responses: ILambdaResponse[]) {
   // For consistency between requests
-  const sortedResponses = responses.sort((a, b) =>
-    a.dependency.name.localeCompare(b.dependency.name)
-  );
+  // const sortedResponses = responses.sort((a, b) =>
+  //   a.dependency.name.localeCompare(b.dependency.name)
+  // );
+
+  // FIX: 自定义优先级 @ -> react-xxx -> react
+  const sortedResponses = responses.sort((a, b) => {
+    const aAt = a.dependency.name.startsWith("@");
+    const bAt = b.dependency.name.startsWith("@");
+    if (aAt !== bAt) return aAt ? -1 : 1;
+    return b.dependency.name.localeCompare(a.dependency.name);
+  });
 
   const response: IResponse = {
     contents: {},
