@@ -166,16 +166,15 @@ class BabelTranspiler extends WorkerTranspiler {
       }
     }
           
-    const { alias } = loaderContext.options.configurations.sandbox.parsed;
-    const { environ, regex  } = loaderContext.options.configurations.typescript.parsed ?? {};
+    const { alias, externalRegex } = loaderContext.options.configurations.sandbox.parsed;
     if (!isNodeModule) {
       // 如果待构建的前端项目中使用了别名，则用真实路径替换源码中的别名
       if (alias && Object.keys(alias).length > 0) {
         // eslint-disable-next-line no-param-reassign
         code = replaceImportPathAliases(code, alias);
       }
-      code = replaceEnvironments(code, environ);
-      code = replaceRegex(code, regex);
+      code = replaceEnvironments(code);
+      code = replaceRegex(code, externalRegex);
     }
 
     const configs = loaderContext.options.configurations;

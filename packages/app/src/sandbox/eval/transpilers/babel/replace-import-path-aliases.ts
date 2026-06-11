@@ -26,11 +26,10 @@ const replaceImportPathAliases = (code: string, pathMap: any) => {
   return code.replace(regex, replacer), pathMap;
 };
 
-export const replaceEnvironments = (code: string, environ: any) => {
-  const vite = environ?.vite ?? {};
-  const process = environ?.process ?? {};
-  return code.replace(/import\.meta\.env/g, `(${JSON.stringify(vite)})`)
-    .replace(/process\./g, `(${JSON.stringify(process)}).`)
+export const replaceEnvironments = (code: string) => {
+  return code
+    .replace(/import\.meta\./g, `__IMPORT_META__.`)
+    .replace(/process\.env/g, `__PROCESS_ENV__`)
   ;
 }
 
