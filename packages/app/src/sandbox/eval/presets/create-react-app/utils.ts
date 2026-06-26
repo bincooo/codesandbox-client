@@ -74,6 +74,19 @@ export async function supportsNewReactTransform(
   return false;
 }
 
+export function supportsDependencies(
+  dependencies: Dependencies = {},
+  devDependencies: Dependencies = {},
+  packageName?: string,
+): boolean {
+  if (!packageName) {
+    return false;
+  }
+
+  const packageJSON = dependencies[packageName] || devDependencies[packageName];
+  return !!packageJSON;
+}
+
 /**
  * We unmount the component tree to ensure that `componentWillUnmount` et all are called
  */

@@ -18,6 +18,7 @@ import {
   cleanUsingUnmount,
   isMinimalReactDomVersion,
   supportsNewReactTransform,
+  supportsDependencies,
 } from './utils';
 import { initializeReactDevToolsLegacy } from './utils/initLegacyDevTools';
 import { initializeReactDevToolsLatest } from './utils/initLatestDevTools';
@@ -102,6 +103,21 @@ export async function reactPreset(pkg: PackageJSON) {
   const babelConfig = newReactTransform
     ? NEW_REACT_BABEL_CONFIG
     : CLASSIC_REACT_BABEL_CONFIG;
+  
+  // 添加自定义插件
+  if (supportsDependencies(
+    pkg.dependencies,
+    pkg.devDependencies,
+    "@bingco/react-reject"
+  )) {
+    const presets = babelConfig.presets;
+    for (const [typed, runtime] of presets) {
+      if (typed === 'react') {
+        const _runtime = runtime as any;
+        _runtime.importSource = "@bingco/react-reject";
+      }
+    }
+  }
 
   const preset = new Preset(
     'create-react-app',
